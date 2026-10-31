@@ -27,7 +27,8 @@ jobs:
       - name: Compile Application
         run: |
           export THEOS=~/theos
-          make package FINALPACKAGE=1
+          export THEOS_DEVICE_IP=
+          make package FINALPACKAGE=1 THEOS=~/theos
 
       - name: Pack IPA Bundle
         run: |
