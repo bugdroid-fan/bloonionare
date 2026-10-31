@@ -36,6 +36,11 @@ jobs:
           mv manual-sdks/iPhoneOS9.3.sdk ~/theos/sdks/
           rm -rf manual-sdks manual-theos
 
+      - name: Patch Missing Linker Stub
+        run: |
+          mkdir -p ~/theos/sdks/iPhoneOS9.3.sdk/usr/lib/system
+          echo -e "---\narchs: [ armv7, armv7s, arm64 ]\nplatform: ios\ninstall-name: /usr/lib/system/liblaunch.dylib\nexports:\n  - archs: [ armv7, armv7s, arm64 ]\n    symbols: [ _launch_activate_socket ]\n..." > ~/theos/sdks/iPhoneOS9.3.sdk/usr/lib/system/liblaunch.tbd
+
       - name: Compile Application (Local Engine Mapping)
         run: |
           export THEOS=~/theos
