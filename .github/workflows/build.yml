@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p Payload
           cp -r .theos/obj/*.app Payload/
-          zip -r IAmRich.ipa Payload
+          zip -r ImABloonionare.ipa Payload
           
       - name: Upload IPA Artifact
         uses: actions/artifacts/upload@v4
