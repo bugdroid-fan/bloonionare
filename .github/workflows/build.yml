@@ -33,7 +33,7 @@ jobs:
           zip -r ImABloonionare.ipa Payload
           
       - name: Upload IPA Artifact
-        uses: actions/artifacts/upload@v4
+        uses: actions/upload-artifact@v4
         with:
           name: Im-A-Bloonionare
           path: ImABloonionare.ipa
