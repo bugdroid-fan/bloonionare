@@ -1,0 +1,9 @@
+Package: com.bugdroidfan.bloonionaire
+Name: Bloonionaire
+Depends: mobilesubstrate
+Version: 1.0
+Architecture: iphoneos-arm
+Description: Legacy 32-bit full-screen toggling arcade app.
+Maintainer: bugdroid-fan
+Author: bugdroid-fan
+Section: Applications
