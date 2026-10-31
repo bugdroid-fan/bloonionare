@@ -24,11 +24,11 @@ jobs:
           tar -xf ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz -C ~/theos/sdks/
           rm ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz
 
-      - name: Compile Application
+      - name: Compile Application (Forced Path Mapping)
         run: |
           export THEOS=~/theos
           export THEOS_DEVICE_IP=
-          make package FINALPACKAGE=1 THEOS=~/theos
+          make package FINALPACKAGE=1 THEOS=~/theos SDKROOT=~/theos/sdks/iPhoneOS9.3.sdk
 
       - name: Pack IPA Bundle
         run: |
