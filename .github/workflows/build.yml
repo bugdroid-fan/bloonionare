@@ -9,25 +9,36 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Prerequisites
+      - name: Install Compiler Requirements
         run: brew install ldid
 
-      - name: Install Theos Toolchain
-        run: |
-          bash -c "$(curl -fsSL https://githubusercontent.com)"
-          echo "THEOS=~/theos" >> $GITHUB_ENV
+      - name: Download iOS 9.3 SDK
+        uses: actions/checkout@v4
+        with:
+          repository: xybp888/iOS-SDKs
+          path: manual-sdks
+          sparse-checkout: iPhoneOS9.3.sdk
+          sparse-checkout-cone-mode: false
 
-      - name: Download iOS 9.3 SDK (Direct Raw Target)
+      - name: Download Theos Toolchain
+        uses: actions/checkout@v4
+        with:
+          repository: theos/theos
+          path: manual-theos
+          submodules: recursive
+
+      - name: Assemble Workspace Folders
         run: |
+          mkdir -p ~/theos
+          mv manual-theos/* ~/theos/ || true
+          mv manual-theos/.* ~/theos/ || true
           mkdir -p ~/theos/sdks
-          curl -L -o ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz https://github.com
-          tar -xf ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz -C ~/theos/sdks/
-          rm ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz
+          mv manual-sdks/iPhoneOS9.3.sdk ~/theos/sdks/
+          rm -rf manual-sdks manual-theos
 
-      - name: Compile Application (Forced Path Mapping)
+      - name: Compile Application (Local Engine Mapping)
         run: |
           export THEOS=~/theos
-          export THEOS_DEVICE_IP=
           make package FINALPACKAGE=1 THEOS=~/theos SDKROOT=~/theos/sdks/iPhoneOS9.3.sdk
 
       - name: Pack IPA Bundle
