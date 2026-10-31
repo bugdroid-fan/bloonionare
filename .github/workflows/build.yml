@@ -17,7 +17,7 @@ jobs:
           bash -c "$(curl -fsSL https://githubusercontent.com)"
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
-      - name: Download iOS 9.3 SDK (Direct Minimal Link)
+      - name: Download iOS 9.3 SDK (Direct Raw Target)
         run: |
           mkdir -p ~/theos/sdks
           curl -L -o ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz https://github.com
