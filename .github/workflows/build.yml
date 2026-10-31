@@ -1,0 +1,39 @@
+name: Build Legacy 32-bit App
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Prerequisites
+        run: brew install ldid
+
+      - name: Install Theos Toolchain
+        run: |
+          bash -c "$(curl -fsSL https://githubusercontent.com)"
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+
+      - name: Download iOS 9.3 SDK
+        run: |
+          git clone --quiet https://github.com ~/theos/sdks
+
+      - name: Compile Application
+        run: |
+          export THEOS=~/theos
+          make package FINALPACKAGE=1
+
+      - name: Pack IPA Bundle
+        run: |
+          mkdir -p Payload
+          cp -r .theos/obj/*.app Payload/
+          zip -r IAmRich.ipa Payload
+          
+      - name: Upload IPA Artifact
+        uses: actions/artifacts/upload@v4
+        with:
+          name: Im-A-Bloonionare
+          path: ImABloonionare.ipa
