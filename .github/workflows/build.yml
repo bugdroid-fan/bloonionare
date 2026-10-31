@@ -17,13 +17,12 @@ jobs:
           bash -c "$(curl -fsSL https://githubusercontent.com)"
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
-      - name: Download iOS 9.3 SDK (Direct Zip Extract)
+      - name: Download iOS 9.3 SDK (Direct Minimal Link)
         run: |
           mkdir -p ~/theos/sdks
-          curl -L -o ~/theos/sdks/9.3.zip https://github.com
-          unzip -q ~/theos/sdks/9.3.zip -d ~/theos/sdks/
-          mv ~/theos/sdks/sdks-master/iPhoneOS9.3.sdk ~/theos/sdks/
-          rm -rf ~/theos/sdks/sdks-master ~/theos/sdks/9.3.zip
+          curl -L -o ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz https://github.com
+          tar -xf ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz -C ~/theos/sdks/
+          rm ~/theos/sdks/iPhoneOS9.3.sdk.tar.xz
 
       - name: Compile Application
         run: |
