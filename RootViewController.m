@@ -8,11 +8,11 @@
 
 @implementation RootViewController
 
-// Explicitly links the underscore names to the properties to fix the dealloc crash
 @synthesize showingMonkey = _showingMonkey;
 @synthesize fullScreenView = _fullScreenView;
 @synthesize window = _window;
 
+// Handles generating the core window layout frame on legacy startup
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = self;
@@ -25,18 +25,22 @@
     
     self.showingMonkey = YES;
     
+    // Set up the full-screen 480x320 landscape canvas boundaries
     self.fullScreenView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 480, 320)];
     self.fullScreenView.image = [UIImage imageNamed:@"monkey.png"];
     self.fullScreenView.contentMode = UIViewContentModeScaleToFill;
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
     
+    // Wire up the full-screen input sensor
     UITapGestureRecognizer *screenTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleScreenTap:)];
     [self.fullScreenView addGestureRecognizer:screenTap];
 }
 
 - (void)handleScreenTap:(UITapGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateEnded) {
+        
+        // Triggers the retro cross-dissolve frame swap transition
         [UIView transitionWithView:self.fullScreenView
                           duration:0.20
                            options:UIViewAnimationOptionTransitionCrossDissolve
@@ -70,8 +74,10 @@
 
 @end
 
+// 🚀 THE EMULATOR CRASH FIX: Using classic memory pool hooks for touchHLE
 int main(int argc, char *argv[]) {
-    @autoreleasepool {
-        return UIApplicationMain(argc, argv, nil, @"RootViewController");
-    }
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    int retVal = UIApplicationMain(argc, argv, nil, @"RootViewController");
+    [pool release];
+    return retVal;
 }
