@@ -30,8 +30,8 @@ jobs:
       - name: Assemble Workspace Folders
         run: |
           mkdir -p ~/theos
-          mv manual-theos/* ~/theos/ || true
-          mv manual-theos/.* ~/theos/ || true
+          cp -r manual-theos/* ~/theos/ || true
+          cp -r manual-theos/.* ~/theos/ || true
           mkdir -p ~/theos/sdks
           mv manual-sdks/iPhoneOS9.3.sdk ~/theos/sdks/
           rm -rf manual-sdks manual-theos
