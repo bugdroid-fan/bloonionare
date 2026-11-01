@@ -12,13 +12,10 @@
 @synthesize fullScreenView = _fullScreenView;
 @synthesize window = _window;
 
-// Natively handles building the window context for BOTH modern and early runtimes
+// Natively handles building the window canvas for both modern and early runtimes
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
-    // BACKWARD COMPATIBILITY CHECK:
-    // If running on iOS 4.0+ (Real Hardware), use the modern root assignment.
-    // If running on iOS 2.0 - 3.0 (touchHLE / iDared), use the retro addSubview loop!
     if ([self.window respondsToSelector:@selector(setRootViewController:)]) {
         self.window.rootViewController = self;
     } else {
@@ -38,17 +35,20 @@
     self.fullScreenView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 480, 320)];
     self.fullScreenView.image = [UIImage imageNamed:@"monkey.png"];
     self.fullScreenView.contentMode = UIViewContentModeScaleToFill;
+    
+    // We keep user interaction enabled so the view hierarchy passes screen inputs down cleanly
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
     
-    UITapGestureRecognizer *screenTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleScreenTap:)];
-    [self.fullScreenView addGestureRecognizer:screenTap];
+    // 🛑 GESTURE RECOGNIZERS REMOVED COMPLETELY TO PREVENT EMULATOR CRASHES!
 }
 
-- (void)handleScreenTap:(UITapGestureRecognizer *)sender {
-    if (sender.state == UIGestureRecognizerStateEnded) {
-        [UIView transitionWithView:self.fullScreenView
-                          duration:0.20
+// 🚀 THE EMULATION FIX: Pure, retro 2008 hardware touch tracking loop
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    
+    // Cross-dissolve asset-toggling block
+    [UIView transitionWithView:self.fullScreenView
+                      duration:0.20
                            options:UIViewAnimationOptionTransitionCrossDissolve
                         animations:^{
             
@@ -61,7 +61,6 @@
             }
             
         } completion:nil];
-    }
 }
 
 - (BOOL)shouldAutorotate {
