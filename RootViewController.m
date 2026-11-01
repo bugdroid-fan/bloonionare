@@ -12,8 +12,10 @@
 @synthesize fullScreenView = _fullScreenView;
 @synthesize window = _window;
 
-// Natively handles building the window canvas for both modern and early runtimes
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    // Force the status bar hidden to ensure a pure full-screen arcade viewport layout
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
     if ([self.window respondsToSelector:@selector(setRootViewController:)]) {
@@ -32,37 +34,35 @@
     self.view.backgroundColor = [UIColor blackColor];
     self.showingMonkey = YES;
     
-    self.fullScreenView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 480, 320)];
+    // ORIENTATION FIX:
+    // Because touchHLE handles window boundaries as a vertical stack, we bind the view boundaries
+    // to the native screen bounds dynamically so the OS forces it to fit landscape layouts perfectly!
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    self.fullScreenView = [[UIImageView alloc] initWithFrame:screenBounds];
     self.fullScreenView.image = [UIImage imageNamed:@"monkey.png"];
     self.fullScreenView.contentMode = UIViewContentModeScaleToFill;
-    
-    // We keep user interaction enabled so the view hierarchy passes screen inputs down cleanly
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
-    
-    // 🛑 GESTURE RECOGNIZERS REMOVED COMPLETELY TO PREVENT EMULATOR CRASHES!
 }
 
-// 🚀 THE EMULATION FIX: Pure, retro 2008 hardware touch tracking loop
+// 🚀 THE EMULATOR CRASH FIX: Pure iOS 2.0 raw frame-swapping tap detection
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    
-    // Cross-dissolve asset-toggling block
-    [UIView transitionWithView:self.fullScreenView
-                      duration:0.20
-                           options:UIViewAnimationOptionTransitionCrossDissolve
-                        animations:^{
-            
-            if (self.showingMonkey) {
-                self.fullScreenView.image = [UIImage imageNamed:@"text.png"];
-                self.showingMonkey = NO;
-            } else {
-                self.fullScreenView.image = [UIImage imageNamed:@"monkey.png"];
-                self.showingMonkey = YES;
-            }
-            
-        } completion:nil];
+    if (self.showingMonkey) {
+        [self.fullScreenView setImage:[UIImage imageNamed:@"text.png"]];
+        self.showingMonkey = NO;
+    } else {
+        [self.fullScreenView setImage:[UIImage imageNamed:@"monkey.png"]];
+        self.showingMonkey = YES;
+    }
 }
 
+// Vintage rotation support flags for iPhone OS 2/3 devices
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return (interfaceOrientation == UIInterfaceOrientationLandscapeLeft || 
+            interfaceOrientation == UIInterfaceOrientationLandscapeRight);
+}
+
+// iOS 6+ rotation fallback mapping configuration routines
 - (BOOL)shouldAutorotate {
     return YES;
 }
