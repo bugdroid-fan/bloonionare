@@ -1,9 +1,10 @@
 #import <UIKit/UIKit.h>
 
 @interface RootViewController : UIViewController <UIApplicationDelegate> {
-    // We cache the images permanently in variables so the app never recreates them on tap
     UIImage *monkeyImg;
     UIImage *textImg;
+    // 🛡️ THE CRASH FIX: Prevents touch collisions from overlapping inside the emulator
+    BOOL isProcessingTouch;
 }
 @property (nonatomic, assign) BOOL showingMonkey;
 @property (nonatomic, retain) UIImageView *fullScreenView;
@@ -36,23 +37,29 @@
     
     self.view.backgroundColor = [UIColor blackColor];
     self.showingMonkey = YES;
+    isProcessingTouch = NO;
     
-
+    // Load the assets directly into permanent memory variables
     monkeyImg = [[UIImage imageNamed:@"monkey.png"] retain];
     textImg = [[UIImage imageNamed:@"text.png"] retain];
     
-
+    // 🗺️ HORIZONTAL LANDSCAPE FIX:
+    // We bind the container layout to a clean 320x480 coordinate layout, but apply 
+    // a 90-degree rotation matrix to pivot the graphics sideways inside iDared!
     self.fullScreenView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 320, 480)];
     self.fullScreenView.center = self.view.center;
+    self.fullScreenView.transform = CGAffineTransformMakeRotation(M_PI / 2.0); // Perfect 90-degree landscape turn!
     self.fullScreenView.image = monkeyImg;
     self.fullScreenView.contentMode = UIViewContentModeScaleAspectFit;
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
 }
 
+// 🚀 ZERO-CRASH TOUCH CONTROLLER: Pure, isolated single-execution loop
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    // Wrap the swap logic inside a localized autorelease loop to protect iDared's memory state
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    // If a touch cycle is already being processed, immediately drop this block!
+    if (isProcessingTouch) return;
+    isProcessingTouch = YES;
     
     if (self.showingMonkey) {
         self.fullScreenView.image = textImg;
@@ -61,8 +68,15 @@
         self.fullScreenView.image = monkeyImg;
         self.showingMonkey = YES;
     }
-    
-    [pool release];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    // Release the touch block lock only after your finger completely leaves the glass surface
+    isProcessingTouch = NO;
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+    isProcessingTouch = NO;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
