@@ -12,6 +12,14 @@ jobs:
       - name: Install Compiler Requirements
         run: brew install ldid
 
+      - name: Download iOS 9.3 SDK (Built-in Action)
+        uses: actions/checkout@v4
+        with:
+          repository: xybp888/iOS-SDKs
+          path: manual-sdks
+          sparse-checkout: iPhoneOS9.3.sdk
+          sparse-checkout-cone-mode: false
+
       - name: Download Theos Toolchain
         uses: actions/checkout@v4
         with:
@@ -19,26 +27,24 @@ jobs:
           path: manual-theos
           submodules: recursive
 
-      - name: Download Legacy iOS 3.0 SDK (Direct Minimal Link)
-        run: |
-          mkdir -p manual-sdks
-          curl -L -o manual-sdks/iPhoneOS3.0.sdk.tar.xz https://github.com
-          tar -xf manual-sdks/iPhoneOS3.0.sdk.tar.xz -C manual-sdks/
-          rm manual-sdks/iPhoneOS3.0.sdk.tar.xz
-
       - name: Assemble Workspace Folders
         run: |
           mkdir -p ~/theos
           cp -r manual-theos/* ~/theos/ || true
           cp -r manual-theos/.* ~/theos/ || true
           mkdir -p ~/theos/sdks
-          mv manual-sdks/iPhoneOS3.0.sdk ~/theos/sdks/
+          mv manual-sdks/iPhoneOS9.3.sdk ~/theos/sdks/
           rm -rf manual-sdks manual-theos
+
+      - name: Patch Missing Linker Stub
+        run: |
+          mkdir -p ~/theos/sdks/iPhoneOS9.3.sdk/usr/lib/system
+          echo -e "---\narchs: [ armv7, armv7s, arm64 ]\nplatform: ios\ninstall-name: /usr/lib/system/liblaunch.dylib\nexports:\n  - archs: [ armv7, armv7s, arm64 ]\n    symbols: [ _launch_activate_socket ]\n..." > ~/theos/sdks/iPhoneOS9.3.sdk/usr/lib/system/liblaunch.tbd
 
       - name: Compile Application (Local Engine Mapping)
         run: |
           export THEOS=~/theos
-          make package FINALPACKAGE=1 THEOS=~/theos SDKROOT=~/theos/sdks/iPhoneOS3.0.sdk
+          make package FINALPACKAGE=1 THEOS=~/theos SDKROOT=~/theos/sdks/iPhoneOS9.3.sdk
 
       - name: Pack IPA Bundle
         run: |
