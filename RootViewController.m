@@ -12,7 +12,7 @@
 @synthesize fullScreenView = _fullScreenView;
 @synthesize window = _window;
 
-// Handles generating the core window layout frame on legacy startup
+// Handles generating the window context programmatically on app boot
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = self;
@@ -23,6 +23,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    // CRITICAL BLACK SCREEN FIX: Force the base controller view to have a solid background color.
+    // If the system canvas background is left transparent or clear, iOS will render a black freeze screen.
+    self.view.backgroundColor = [UIColor whiteColor];
+    
     self.showingMonkey = YES;
     
     // Set up the full-screen 480x320 landscape canvas boundaries
@@ -32,7 +36,7 @@
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
     
-    // Wire up the full-screen input sensor
+    // Wire up the full-screen tap gesture listener
     UITapGestureRecognizer *screenTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleScreenTap:)];
     [self.fullScreenView addGestureRecognizer:screenTap];
 }
@@ -74,9 +78,11 @@
 
 @end
 
-// 🚀 THE EMULATOR CRASH FIX: Using classic memory pool hooks for touchHLE
+// The direct native application initialization loop entry point
 int main(int argc, char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    // Passing @"RootViewController" as the 4th parameter tells the iOS kernel 
+    // to instantiate this class immediately as the core launch delegate.
     int retVal = UIApplicationMain(argc, argv, nil, @"RootViewController");
     [pool release];
     return retVal;
