@@ -1,9 +1,10 @@
-# Target is now explicitly forced to ancient iOS 3.0 runtime layout rules
-TARGET = iphone:clang:3.0:3.0
+# We use the solid 9.3 SDK to compile, but force the deployment target down to iOS 3.0
+TARGET = iphone:clang:9.3:3.0
 ARCHS = armv7
 
-# Strict legacy runtime flag overrides to completely strip modern optimization methods
-ADDITIONAL_CFLAGS = -fno-modules -Wno-error -Wno-deprecated-module-dot-map -fobjc-runtime=ios-3.0
+# LEGACY COMPATIBILITY OVERRIDES:
+# -miphoneos-version-min=3.0 forces clang to strip out all modern _objc_alloc lookups!
+ADDITIONAL_CFLAGS = -fno-modules -Wno-error -Wno-deprecated-module-dot-map -fobjc-runtime=ios-3.0 -miphoneos-version-min=3.0
 
 include $(THEOS)/makefiles/common.mk
 
