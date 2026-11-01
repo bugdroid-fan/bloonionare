@@ -12,10 +12,19 @@
 @synthesize fullScreenView = _fullScreenView;
 @synthesize window = _window;
 
-// Handles generating the window context programmatically on app boot
+// Natively handles building the window context for BOTH modern and early runtimes
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.window.rootViewController = self;
+    
+    // BACKWARD COMPATIBILITY CHECK:
+    // If running on iOS 4.0+ (Real Hardware), use the modern root assignment.
+    // If running on iOS 2.0 - 3.0 (touchHLE / iDared), use the retro addSubview loop!
+    if ([self.window respondsToSelector:@selector(setRootViewController:)]) {
+        self.window.rootViewController = self;
+    } else {
+        [self.window addSubview:self.view];
+    }
+    
     [self.window makeKeyAndVisible];
     return YES;
 }
@@ -23,28 +32,21 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // CRITICAL BLACK SCREEN FIX: Force the base controller view to have a solid background color.
-    // If the system canvas background is left transparent or clear, iOS will render a black freeze screen.
-    self.view.backgroundColor = [UIColor whiteColor];
-    
+    self.view.backgroundColor = [UIColor blackColor];
     self.showingMonkey = YES;
     
-    // Set up the full-screen 480x320 landscape canvas boundaries
     self.fullScreenView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 480, 320)];
     self.fullScreenView.image = [UIImage imageNamed:@"monkey.png"];
     self.fullScreenView.contentMode = UIViewContentModeScaleToFill;
     self.fullScreenView.userInteractionEnabled = YES;
     [self.view addSubview:self.fullScreenView];
     
-    // Wire up the full-screen tap gesture listener
     UITapGestureRecognizer *screenTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleScreenTap:)];
     [self.fullScreenView addGestureRecognizer:screenTap];
 }
 
 - (void)handleScreenTap:(UITapGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateEnded) {
-        
-        // Triggers the retro cross-dissolve frame swap transition
         [UIView transitionWithView:self.fullScreenView
                           duration:0.20
                            options:UIViewAnimationOptionTransitionCrossDissolve
@@ -78,11 +80,8 @@
 
 @end
 
-// The direct native application initialization loop entry point
 int main(int argc, char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    // Passing @"RootViewController" as the 4th parameter tells the iOS kernel 
-    // to instantiate this class immediately as the core launch delegate.
     int retVal = UIApplicationMain(argc, argv, nil, @"RootViewController");
     [pool release];
     return retVal;
